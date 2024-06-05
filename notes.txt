@@ -1,0 +1,99 @@
+chapter 3_cucumber.feature
+# -- Steps from chapter 3
+    Scenario: Add cucumbers to a basket
+        Given the basket has 2 cucumbers
+        When 4 cucumbers are added to the basket
+        Then the basket should have 6 cucumbers
+
+
+
+
+chapter 3_est_cucumbers_steps.py
+from pytest_bdd import scenario, parsers, given, when, then
+
+from cucumbers import CucumberBasket
+
+@scenario('../features/cucumbers.feature', 'Add cucumbers to a basket')
+def test_add():
+    pass
+
+
+# code from chapter 3
+@given("the basket has 2 cucumbers", target_fixture='basket')
+def basket():
+    return CucumberBasket(initial_count=2)
+
+
+@when("4 cucumbers are added to the basket")
+def add_cucumbers(basket):
+    basket.add(4)
+
+
+@then("the basket should have 6 cucumbers")
+def basket_has_total(basket):
+    assert basket.count == 6
+
+
+
+
+chapter 4 radish.feature
+Feature: Cucumber Basket
+    As a gardener,
+    I want to carry cucumbers in a basket,
+    So that I do not drop them all.
+
+Scenario: Add cucumbers to a basket
+    Given the basket has "2" cucumbers
+    When "4" cucumbers are added to the basket
+    Then the basket contains "6" cucumbers
+
+Scenario: Remove cucumbers to a basket
+    Given the basket has "8" cucumbers
+    When "3" cucumbers are removed to the basket
+    Then the basket contains "5" cucumbers
+
+
+
+chapter 4 test_cucumbers_steps.py@given(parsers.cfparse('the basket has "{initial: Number}" cucumbers', extra_types=dict(Number=int)), target_fixture='basket')
+from functools import partial
+from pytest_bdd import scenario, parsers, given, scenarios, when, then
+
+from cucumbers import CucumberBasket
+
+scenarios('../features/radish.feature')
+
+""" @scenario('../features/cucumbers.feature', 'Add cucumbers to a basket')
+
+def test_add():
+    pass
+
+@scenario('../features/cucumbers.feature', 'Remove cucumbers to a basket')
+def test_remove():
+    pass """
+
+EXTRA_TYPES ={
+    'Number': int,
+}
+
+parse_num = partial(parsers.cfparse, extra_types=EXTRA_TYPES)
+
+@given(
+  parse_num('the basket has "{initial:Number}" cucumbers'),
+  target_fixture='basket')
+def basket(initial):
+    return CucumberBasket(initial_count=initial)
+
+
+@when(parse_num('"{some:Number}" cucumbers are added to the basket'))
+def add_cucumbers(basket, some):
+    basket.add(some)
+    
+    
+@when(parse_num('"{some:Number}" cucumbers are removed to the basket'))
+def remove_cucumbers(basket, some):
+    basket.remove(some)
+    
+    
+@then(parse_num('the basket contains "{total: Number}" cucumbers'))
+def basket_has_total(basket, total):
+    assert basket.count == total
